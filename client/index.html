@@ -546,7 +546,16 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-const socket = io("https://crypto-crash-backend-lqck.onrender.com/"); // ✅ CORRECT
+const socket = io("https://crypto-crash-backend-lqck.onrender.com");
+
+socket.on("connect", () => {
+  console.log("✅ WebSocket connected to backend");
+});
+
+socket.on("disconnect", () => {
+  console.log("❌ WebSocket disconnected");
+});
+// ✅ CORRECT
 
     const roundText = document.getElementById('round');
     const countdownText = document.getElementById('countdown');
