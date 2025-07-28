@@ -667,3 +667,6 @@ const PORT = process.env.PORT || 5000;
     console.error('❌ Error starting server:', error);
   }
 })();
+const cors = require("cors");
+app.use(cors()); // OR
+// app.use(cors({ origin: "https://your-frontend.netlify.app" }));
