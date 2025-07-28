@@ -667,7 +667,6 @@ const PORT = process.env.PORT || 5000;
     console.error('❌ Error starting server:', error);
   }
 })();
-const cors = require("cors");
 app.use(cors());
 
 const server = http.createServer(app);
