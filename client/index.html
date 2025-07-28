@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crypto Crash Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    .main-container {
+      max-width: 500px;
+      width: 100%;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    h1 {
+      font-size: 2.2rem;
+      margin: 0;
+      color: #00e676;
+      text-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+      font-weight: 700;
+    }
+    #round, #countdown, #status {
+      font-size: 1rem;
+      margin: 4px 0;
+      color: #94a3b8;
+    }
+    #multiplier {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #ffd700;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+      margin: 10px 0;
+    }
+    button {
+      margin: 8px 0;
+      padding: 16px 24px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: block !important;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+      position: relative;
+      overflow: hidden;
+      opacity: 1 !important;
+      visibility: visible !important;
+      z-index: 10;
+    }
+    button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    button:hover:before {
+      left: 100%;
+    }
+    button:disabled {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 230, 118, 0.4);
+    }
+    
+    .secondary-btn {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+      margin-top: 15px;
+    }
+    
+    .secondary-btn:hover:not(:disabled) {
+      box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
+    }
+    input[type="number"] {
+      padding: 16px 20px;
+      width: 100%;
+      margin: 8px 0;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #00e676;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    input[type="number"]::placeholder {
+      color: #64748b;
+    }
+    
+    /* Animation Container */
+    .animation-container {
+      position: relative;
+      height: 200px;
+      margin: 20px 0;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #333;
+    }
+    
+    /* Rocket */
+    .rocket {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      transition: all 0.1s ease;
+      z-index: 10;
+    }
+    
+    /* Rocket trail */
+    .rocket-trail {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 20px;
+      background: linear-gradient(to top, #ff6b35, #f7931e, transparent);
+      border-radius: 2px;
+      animation: trail 0.5s infinite;
+    }
+    
+    @keyframes trail {
+      0% { height: 20px; opacity: 1; }
+      100% { height: 40px; opacity: 0; }
+    }
+    
+    /* Graph */
+    .graph-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+    }
+    
+    .graph-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 2px;
+      height: 0;
+      background: linear-gradient(to top, #00e676, #00c853);
+      transition: all 0.1s ease;
+      transform-origin: bottom left;
+    }
+    
+    .graph-points {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .graph-point {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #00e676;
+      border-radius: 50%;
+      transform: translate(-50%, 50%);
+    }
+    
+    /* Crash animation */
+    .crash-effect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      animation: crash 1s ease-out;
+      z-index: 15;
+    }
+    
+    @keyframes crash {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+    
+    /* Grid lines */
+    .grid-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    
+    .grid-line {
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .grid-line:nth-child(1) { top: 25%; }
+    .grid-line:nth-child(2) { top: 50%; }
+    .grid-line:nth-child(3) { top: 75%; }
+    
+    /* Game info styles */
+    .game-info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .game-info h1 {
+      margin-bottom: 10px;
+    }
+    
+    .game-info p {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+    
+    /* Bet section styles */
+    .bet-section {
+      padding: 30px;
+      flex: 1;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 400px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin: 10px;
+      border: 2px solid rgba(0, 230, 118, 0.5);
+      position: relative;
+      overflow-y: auto;
+    }
+    
+    .crypto-selector {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    .crypto-selector label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #00e676;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .crypto-selector select {
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .crypto-selector select:focus {
+      outline: none;
+      border-color: #00e676;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+    }
+    
+    .price-info {
+      margin-bottom: 15px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: #ffd700;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      text-align: center;
+    }
+    
+    /* Balance display */
+    .balance-section {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      text-align: left;
+    }
+    
+    .balance-section h3 {
+      margin: 0 0 20px 0;
+      color: #00e676;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .balance-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .balance-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateX(5px);
+    }
+    
+    .balance-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .crypto-symbol {
+      font-weight: 700;
+      color: #00e676;
+      font-size: 1.1rem;
+    }
+    
+    .balance-amount {
+      color: #ffd700;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .usd-value {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+        height: auto;
+        gap: 20px;
+      }
+      
+      .animation-side {
+        height: 300px;
+      }
+      
+      .game-side {
+        padding: 20px;
+      }
+      
+      body {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Game Info -->
+    <div class="game-info">
+      <h1>🚀 Crypto Crash Game</h1>
+      <p id="round">Round: Waiting...</p>
+      <p id="countdown">⏳ Starting in: --</p>
+      <p id="multiplier">Multiplier: 1.00x</p>
+      <p id="status">Status: Waiting...</p>
+    </div>
+    
+    <!-- Animation Container -->
+    <div class="animation-container">
+      <!-- Grid lines -->
+      <div class="grid-lines">
+        <div class="grid-line"></div>
+        <div class="grid-line"></div>
+        <div class="grid-line"></div>
+      </div>
+      
+      <!-- Graph container -->
+      <div class="graph-container">
+        <div class="graph-line"></div>
+        <div class="graph-points"></div>
+      </div>
+      
+      <!-- Rocket -->
+      <div class="rocket">🚀</div>
+      <div class="rocket-trail"></div>
+      
+      <!-- Crash effect (hidden by default) -->
+      <div class="crash-effect" style="display: none;">💥</div>
+    </div>
+    
+    <!-- Balance Section -->
+    <div class="balance-section">
+      <h3>💰 Wallet Balances</h3>
+      <div id="balanceDisplay">
+        <div class="balance-item">
+          <span class="crypto-symbol">BTC:</span>
+          <div>
+            <div class="balance-amount" id="btcBalance">0.001 BTC</div>
+            <div class="usd-value" id="btcUSD">≈ $60.00</div>
+          </div>
+        </div>
+        <div class="balance-item">
+          <span class="crypto-symbol">ETH:</span>
+          <div>
+            <div class="balance-amount" id="ethBalance">0.01 ETH</div>
+            <div class="usd-value" id="ethUSD">≈ $30.00</div>
+          </div>
+        </div>
+        <div class="balance-item">
+          <span class="crypto-symbol">USDT:</span>
+          <div>
+            <div class="balance-amount" id="usdtBalance">100 USDT</div>
+            <div class="usd-value" id="usdtUSD">≈ $100.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bet Section -->
+    <div style="
+      padding: 30px;
+      background: #2d3748;
+      border: 3px solid #00e676;
+      border-radius: 12px;
+      margin: 10px 0;
+      min-height: 400px;
+      display: flex !important;
+      flex-direction: column;
+      gap: 15px;
+    ">
+      <h3 style="color: #00e676; margin: 0 0 20px 0; text-align: center; font-size: 1.5rem;">🎯 Place Your Bet</h3>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 8px; color: #00e676; font-weight: 600;">Select Cryptocurrency:</label>
+        <select id="cryptoType" style="
+          width: 100%;
+          padding: 12px;
+          border-radius: 8px;
+          border: 2px solid #00e676;
+          background: #1a202c;
+          color: white;
+          font-size: 1rem;
+        ">
+          <option value="BTC">Bitcoin (BTC)</option>
+          <option value="ETH">Ethereum (ETH)</option>
+          <option value="USDT">Tether (USDT)</option>
+        </select>
+      </div>
+      
+      <div style="
+        padding: 10px;
+        background: #1a202c;
+        border-radius: 8px;
+        text-align: center;
+        color: #ffd700;
+        border: 1px solid #ffd700;
+      ">
+        <span id="currentPrice">Loading prices...</span>
+      </div>
+      
+      <input id="betAmount" type="number" placeholder="Enter USD amount" min="1" step="0.01" style="
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid #00e676;
+        background: #1a202c;
+        color: white;
+        font-size: 1rem;
+        margin: 10px 0;
+      " />
+      
+      <button id="placeBet" style="
+        width: 100%;
+        padding: 15px;
+        background: #00e676;
+        color: black;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 5px 0;
+      ">🎯 Place Bet</button>
+      
+      <button id="cashout" disabled style="
+        width: 100%;
+        padding: 15px;
+        background: #64748b;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: not-allowed;
+        margin: 5px 0;
+      ">💸 Cash Out</button>
+      
+      <button id="refreshBalance" style="
+        width: 100%;
+        padding: 15px;
+        background: #475569;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 5px 0;
+      ">🔄 Refresh Balance</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+
+    const roundText = document.getElementById('round');
+    const countdownText = document.getElementById('countdown');
+    const multiplierText = document.getElementById('multiplier');
+    const statusText = document.getElementById('status');
+    const cashoutBtn = document.getElementById('cashout');
+    const placeBetBtn = document.getElementById('placeBet');
+    const refreshBalanceBtn = document.getElementById('refreshBalance');
+    const betAmountInput = document.getElementById('betAmount');
+    const cryptoTypeSelect = document.getElementById('cryptoType');
+    const currentPriceSpan = document.getElementById('currentPrice');
+    
+    // Balance elements
+    const btcBalance = document.getElementById('btcBalance');
+    const btcUSD = document.getElementById('btcUSD');
+    const ethBalance = document.getElementById('ethBalance');
+    const ethUSD = document.getElementById('ethUSD');
+    const usdtBalance = document.getElementById('usdtBalance');
+    const usdtUSD = document.getElementById('usdtUSD');
+
+    // Animation elements
+    const rocket = document.querySelector('.rocket');
+    const rocketTrail = document.querySelector('.rocket-trail');
+    const graphLine = document.querySelector('.graph-line');
+    const graphPoints = document.querySelector('.graph-points');
+    const crashEffect = document.querySelector('.crash-effect');
+
+    let hasCashedOut = false;
+    let hasPlacedBet = false;
+    let roundRunning = false;
+    let graphPointsArray = [];
+
+    // Animation functions
+    function resetAnimation() {
+      rocket.style.bottom = '20px';
+      rocket.style.transform = 'translateX(-50%)';
+      graphLine.style.height = '0';
+      graphLine.style.transform = 'rotate(0deg)';
+      graphPoints.innerHTML = '';
+      graphPointsArray = [];
+      crashEffect.style.display = 'none';
+      rocketTrail.style.display = 'none';
+    }
+
+    function updateRocketPosition(multiplier) {
+      const maxHeight = 160; // Maximum height for rocket
+      const maxMultiplier = 10; // Maximum multiplier for scaling
+      const height = Math.min((multiplier / maxMultiplier) * maxHeight, maxHeight);
+      const angle = Math.min((multiplier - 1) * 15, 45); // Max 45 degrees
+
+      rocket.style.bottom = `${20 + height}px`;
+      rocket.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+      
+      // Add rocket trail effect when moving
+      if (multiplier > 1.01) {
+        rocketTrail.style.display = 'block';
+      } else {
+        rocketTrail.style.display = 'none';
+      }
+    }
+
+    function updateGraph(multiplier) {
+      const containerWidth = 460; // Approximate container width
+      const containerHeight = 200;
+      const maxMultiplier = 10;
+      
+      // Calculate position
+      const x = Math.min((multiplier - 1) / (maxMultiplier - 1) * containerWidth, containerWidth);
+      const y = containerHeight - Math.min((multiplier / maxMultiplier) * containerHeight, containerHeight);
+      
+      // Update graph line
+      const angle = Math.atan2(y, x) * (180 / Math.PI);
+      const length = Math.sqrt(x * x + y * y);
+      
+      graphLine.style.height = `${length}px`;
+      graphLine.style.transform = `rotate(${angle}deg)`;
+      
+      // Add point to graph
+      const point = document.createElement('div');
+      point.className = 'graph-point';
+      point.style.left = `${x}px`;
+      point.style.bottom = `${y}px`;
+      graphPoints.appendChild(point);
+      graphPointsArray.push(point);
+      
+      // Keep only last 50 points for performance
+      if (graphPointsArray.length > 50) {
+        graphPoints.removeChild(graphPointsArray.shift());
+      }
+    }
+
+    function showCrashAnimation() {
+      crashEffect.style.display = 'block';
+      setTimeout(() => {
+        crashEffect.style.display = 'none';
+      }, 1000);
+    }
+
+    socket.on('balance', (balanceData) => {
+      // Update BTC balance
+      if (balanceData.BTC) {
+        btcBalance.innerText = `${balanceData.BTC.cryptoBalance.toFixed(6)} BTC`;
+        btcUSD.innerText = `≈ $${balanceData.BTC.usdValue.toFixed(2)}`;
+      }
+      
+      // Update ETH balance
+      if (balanceData.ETH) {
+        ethBalance.innerText = `${balanceData.ETH.cryptoBalance.toFixed(4)} ETH`;
+        ethUSD.innerText = `≈ $${balanceData.ETH.usdValue.toFixed(2)}`;
+      }
+      
+      // Update USDT balance
+      if (balanceData.USDT) {
+        usdtBalance.innerText = `${balanceData.USDT.cryptoBalance.toFixed(2)} USDT`;
+        usdtUSD.innerText = `≈ $${balanceData.USDT.usdValue.toFixed(2)}`;
+      }
+      
+      // Update current price display
+      updateCurrentPrice();
+    });
+
+    socket.on('roundStart', (data) => {
+      hasCashedOut = false;
+      hasPlacedBet = false;
+      roundRunning = true;
+      roundText.innerText = `🎮 Round: ${data.roundNumber}`;
+      statusText.innerText = 'Status: Running';
+      countdownText.innerText = '';
+      multiplierText.innerText = `Multiplier: 1.00x`;
+      betAmountInput.value = ''; // Clear input for new round
+      cashoutBtn.disabled = true; // Disable until bet is placed
+      resetAnimation(); // Reset animation for new round
+    });
+
+    socket.on('countdown', (timeLeft) => {
+      roundRunning = false;
+      countdownText.innerText = `⏳ Starting in: ${timeLeft}s`;
+    });
+
+    socket.on('multiplier', (multiplier) => {
+      multiplierText.innerText = `Multiplier: ${multiplier}x`;
+      if (roundRunning) {
+        updateRocketPosition(parseFloat(multiplier));
+        updateGraph(parseFloat(multiplier));
+      }
+    });
+
+    socket.on('crashed', (point) => {
+      roundRunning = false;
+      statusText.innerText = `💥 Crashed at ${point}x`;
+      cashoutBtn.disabled = true;
+      betAmountInput.value = ''; // Clear input when round crashes
+      showCrashAnimation(); // Show crash animation
+    });
+
+    socket.on('cashedOutSuccess', (data) => {
+      if (!hasCashedOut) {
+        statusText.innerText = `✅ Cashed Out at ${data.multiplier}x! Won $${data.winnings}`;
+        cashoutBtn.disabled = true;
+        hasCashedOut = true;
+        hasPlacedBet = false; // Reset bet flag since bet is now 0
+        
+        // Update balance display
+        socket.emit('getBalance');
+      }
+    });
+
+    socket.on('cashedOutFail', (data) => {
+      alert(data.message);
+      hasCashedOut = false; // Reset the flag if cash out failed
+    });
+
+    socket.on('betPlaced', (response) => {
+      if (response.success) {
+        hasPlacedBet = true;
+        hasCashedOut = false; // Reset cash out flag when placing a new bet
+        statusText.innerText = `✅ Bet placed! Waiting for round...`;
+        betAmountInput.value = ''; // Clear the input for next bet
+        // Enable cash out button only if round is running and bet is placed
+        cashoutBtn.disabled = !roundRunning;
+        
+        // Update balance display
+        socket.emit('getBalance');
+      } else {
+        alert(response.message);
+      }
+    });
+
+    // Helper function to update current price display
+    function updateCurrentPrice() {
+      const selectedCrypto = cryptoTypeSelect.value;
+      // This will be updated when we receive price data from server
+      currentPriceSpan.innerText = `Loading ${selectedCrypto} price...`;
+    }
+    
+    // Debug function to check if all buttons are present
+    function checkButtons() {
+      console.log('Checking buttons...');
+      console.log('Place Bet button:', placeBetBtn);
+      console.log('Cash Out button:', cashoutBtn);
+      console.log('Refresh Balance button:', refreshBalanceBtn);
+      
+      // Force show buttons if they exist
+      if (placeBetBtn) {
+        placeBetBtn.style.display = 'block';
+        placeBetBtn.style.opacity = '1';
+        placeBetBtn.style.visibility = 'visible';
+        console.log('Place Bet button should be visible');
+      }
+      
+      if (cashoutBtn) {
+        cashoutBtn.style.display = 'block';
+        cashoutBtn.style.opacity = '1';
+        cashoutBtn.style.visibility = 'visible';
+        console.log('Cash Out button should be visible');
+      }
+      
+      if (refreshBalanceBtn) {
+        refreshBalanceBtn.style.display = 'block';
+        refreshBalanceBtn.style.opacity = '1';
+        refreshBalanceBtn.style.visibility = 'visible';
+        console.log('Refresh Balance button should be visible');
+      }
+    }
+    
+    // Check buttons on page load
+    window.addEventListener('load', checkButtons);
+    
+    // Also check after DOM is ready
+    document.addEventListener('DOMContentLoaded', checkButtons);
+    
+    // Immediate check
+    setTimeout(checkButtons, 100);
+    setTimeout(checkButtons, 500);
+    setTimeout(checkButtons, 1000);
+    
+    // Force show all elements
+    function forceShowElements() {
+      const betSection = document.querySelector('.bet-section');
+      const betAmount = document.getElementById('betAmount');
+      const placeBetBtn = document.getElementById('placeBet');
+      const cashoutBtn = document.getElementById('cashout');
+      const refreshBtn = document.getElementById('refreshBalance');
+      if (betSection) {
+        betSection.style.display = 'flex';
+        betSection.style.visibility = 'visible';
+        betSection.style.opacity = '1';
+        betSection.style.height = 'auto';
+        betSection.style.minHeight = '400px';
+        console.log('Bet section forced visible');
+      }
+      
+      if (betAmount) {
+        betAmount.style.display = 'block';
+        betAmount.style.visibility = 'visible';
+        betAmount.style.opacity = '1';
+        console.log('Bet amount input forced visible');
+      }
+      
+      if (placeBetBtn) {
+        placeBetBtn.style.display = 'block';
+        placeBetBtn.style.visibility = 'visible';
+        placeBetBtn.style.opacity = '1';
+        console.log('Place bet button forced visible');
+      }
+      
+      if (cashoutBtn) {
+        cashoutBtn.style.display = 'block';
+        cashoutBtn.style.visibility = 'visible';
+        cashoutBtn.style.opacity = '1';
+        console.log('Cash out button forced visible');
+      }
+      
+      if (refreshBtn) {
+        refreshBtn.style.display = 'block';
+        refreshBtn.style.visibility = 'visible';
+        refreshBtn.style.opacity = '1';
+        console.log('Refresh button forced visible');
+      }
+    }
+    
+    // Force show elements
+    setTimeout(forceShowElements, 100);
+    setTimeout(forceShowElements, 500);
+    setTimeout(forceShowElements, 1000);
+    
+
+    
+    // Handle crypto type change
+    cryptoTypeSelect.addEventListener('change', () => {
+      updateCurrentPrice();
+    });
+    
+    // Handle player bet notifications
+    socket.on('playerBet', (data) => {
+      console.log(`Player ${data.playerId} placed a bet of $${data.usdAmount} in ${data.cryptoType}`);
+    });
+    
+    // Handle player cashout notifications
+    socket.on('playerCashout', (data) => {
+      console.log(`Player ${data.playerId} cashed out at ${data.multiplier}x for $${data.winningsUSD}`);
+    });
+    
+    placeBetBtn.addEventListener('click', () => {
+      const usdAmount = betAmountInput.value;
+      const cryptoType = cryptoTypeSelect.value;
+      
+      if (usdAmount && parseFloat(usdAmount) > 0) {
+        socket.emit('placeBet', {
+          usdAmount: parseFloat(usdAmount),
+          cryptoType: cryptoType
+        });
+      } else {
+        alert('Enter a valid USD amount.');
+      }
+    });
+
+    cashoutBtn.addEventListener('click', () => {
+      if (!hasCashedOut && !cashoutBtn.disabled && hasPlacedBet && roundRunning) {
+        socket.emit('cashedOut');
+        // Don't set hasCashedOut = true here, wait for server response
+      }
+    });
+    
+    refreshBalanceBtn.addEventListener('click', () => {
+      socket.emit('getBalance');
+    });
+  </script>
+</body>
+</html>
