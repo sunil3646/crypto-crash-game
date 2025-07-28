@@ -874,6 +874,11 @@
     refreshBalanceBtn.addEventListener('click', () => {
       socket.emit('getBalance');
     });
+    const BASE_URL = "https://crypto-crash-backend.onrender.com";
+
+// Example call:
+fetch(`${BASE_URL}/api/bet`, { method: "POST", body: JSON.stringify(data) })
+
   </script>
 </body>
 </html>
