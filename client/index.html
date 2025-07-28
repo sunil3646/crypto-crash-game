@@ -602,7 +602,7 @@ socket.on("disconnect", () => {
 
     function updateRocketPosition(multiplier) {
       const maxHeight = 160; // Maximum height for rocket
-      const maxMultiplier = 10; // Maximum multiplier for scaling
+      const maxMultiplier = 50; // Maximum multiplier for scaling
       const height = Math.min((multiplier / maxMultiplier) * maxHeight, maxHeight);
       const angle = Math.min((multiplier - 1) * 15, 45); // Max 45 degrees
 
