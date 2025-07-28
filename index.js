@@ -234,7 +234,7 @@ function startNewRound() {
           
           // Exponential growth formula
           const timeElapsed = (Date.now() - roundStartTime) / 1000;
-          const growthFactor = 0.03;
+          const growthFactor = 0.05;
           currentMultiplier = 1 + (timeElapsed * growthFactor);
           
           io.emit('multiplier', currentMultiplier.toFixed(2));
