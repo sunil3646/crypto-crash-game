@@ -667,6 +667,12 @@ const PORT = process.env.PORT || 5000;
     console.error('❌ Error starting server:', error);
   }
 })();
+const io = new Server(server, {
+  cors: {
+    origin: "https://crypto-crash-gameee.netlify.app/", // or "https://your-frontend.netlify.app"
+    methods: ["GET", "POST"]
+  }
+});
 const cors = require("cors");
 app.use(cors()); // OR
 // app.use(cors({ origin: "https://your-frontend.netlify.app" }));
